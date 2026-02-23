@@ -27,6 +27,16 @@ namespace TempLat {
         GhostScalarSingletKernels() = delete;
 
         template <class Model, int N>
+        static auto getON(Model& model, Tag<N> n){
+        
+        	// Returns kernel for scalar singlets (formed by laplacian and potential derivative):
+            return (pow(model.aI, 1 + model.alpha) *
+                    LatLapl<Model::NDim>(model.fldGS(n))
+                    -  ((2.0)/(1.0 + 2.0 * model.fldH(0_c))) * (model.piGS(n) * model.piH(0_c) - GaugeDerivatives::GradientGhostScalarGradientH(model,n))
+                    - pow(model.aI, 3 + model.alpha) * ((1.0 + 4.0 * model.fldH(0_c))/(1.0 + 2.0 * model.fldH(0_c))) * (- Potential::derivGS(model,n) + Potential::derivMassGS(model,n)));
+        }
+
+        template <class Model, int N>
         static auto get(Model& model, Tag<N> n){
         
         	// Returns kernel for scalar singlets (formed by laplacian and potential derivative):

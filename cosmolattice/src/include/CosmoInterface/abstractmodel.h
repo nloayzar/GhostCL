@@ -108,10 +108,13 @@ namespace TempLat {
     	FieldCollection<Field, T, Ns,true> piS;
         // Does not make a huge difference anyhow, so in case of doubt put nothing or false (equivalent).
 
+        FieldCollection<Field, T, 1,true> fldH; 
+    	FieldCollection<Field, T, 1,true> piH;
+
         // --> Ghost Scalar Singlets
         FieldCollection<Field, T, Ns,true> fldGS; 
     	FieldCollection<Field, T, Ns,true> piGS;
-        
+
         // --> Complex scalars
         FieldCollection<ComplexField,T,NCs> fldCS;
         FieldCollection<ComplexField,T,NCs> piCS;
@@ -167,12 +170,14 @@ namespace TempLat {
 
         //Initial Amplitudes (homogeneous modes)
         TempLatArray<T,Ns> fldS0;  // scalar singlet
+        TempLatArray<T,Ns> fldH0;  // scalar singlet
         TempLatArray<T,NGs> fldGS0;  // ghost scalar singlet
         TempLatArray<ComplexFieldWrapper<T,T>,NCs> fldCS0;  // complex scalar
         TempLatArray<SU2DoubletWrapper<T,T,T,T>, NSU2Doublet> fldSU2Doublet0;  // SU2 doublet
 
 		//Initial time-derivatives (homogeneous modes)
         TempLatArray<T,Ns> piS0;  // scalar singlet
+        TempLatArray<T,Ns> piH0;  // h scalar singlet
         TempLatArray<T,NGs> piGS0;  // ghost scalar singlet
         TempLatArray<ComplexFieldWrapper<T,T>,NCs> piCS0;  // complex scalar
         TempLatArray<SU2DoubletWrapper<T,T,T,T>, NSU2Doublet> piSU2Doublet0;  // SU2 doublet
@@ -195,6 +200,7 @@ namespace TempLat {
         TempLatArray<ComplexFieldWrapper<T,T>,NCs> masses2CS; // complex scalar
         TempLatArray<SU2DoubletWrapper<T,T,T,T>,NSU2Doublet> masses2SU2Doublet;  // SU2 doublet
 
+        T grav_ON;
 
         T alpha, fStar, omegaStar; //Rescalings for program variable definitions: (alpha,f_*,w_*)
 
@@ -212,6 +218,8 @@ namespace TempLat {
           isInitialized(toolBox->initializeFFT<T>()),
           fldS("scalar",toolBox,par),
           piS("pi_scalar",toolBox,par),
+          fldH("h_scalar",toolBox,par),
+          piH("h_pi_scalar",toolBox,par),
           fldGS("ghost_scalar",toolBox,par),
           piGS("ghost_pi_scalar",toolBox,par),
           fldCS("cmplx_scalar",toolBox,par),

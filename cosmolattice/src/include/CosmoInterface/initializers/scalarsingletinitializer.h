@@ -30,6 +30,9 @@ namespace TempLat {
             	fg.conjugateGaussianFluctuations(model, model.fldS(i), model.piS(i), model.masses2S[i], model.aDotI, kCutOff);
             );
 
+            model.fldH(0_c) = 0;
+            model.piH(0_c) = 0;
+
             // We set the initial homogeneous components of the fields and derivatives.
             // model.fldCS0(i) and model.piCS0(i) are introduced in physical
             // (dimensionful variables), so we transform them to program variables

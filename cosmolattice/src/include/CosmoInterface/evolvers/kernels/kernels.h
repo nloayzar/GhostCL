@@ -1,5 +1,6 @@
 #include "CosmoInterface/evolvers/kernels/scalarsingletkernels.h"
 #include "CosmoInterface/evolvers/kernels/ghostscalarsingletkernels.h"
+#include "CosmoInterface/evolvers/kernels/hscalarsingletkernels.h"
 #include "CosmoInterface/evolvers/kernels/gwskernels.h"
 #include "CosmoInterface/evolvers/kernels/scalefactorkernels.h"
 #include "CosmoInterface/evolvers/kernels/complexscalarkernels.h"

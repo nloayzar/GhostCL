@@ -47,7 +47,15 @@ namespace TempLat {
                                     );
                             // File for spectra
                           );
-
+            if (model.grav_ON){
+                    standardHOut.emplace_back(
+                            MeasurementsSaver<T>(filesManager, model.fldH(0_c), amIRoot, append, MeansMeasurer::header())
+                                    );
+                            // File for volume-averages
+                          spectraHOut.emplace_back(
+                            SpectrumSaver<T>(filesManager, model.fldH(0_c), amIRoot, append, par)
+                                    );
+            }               // File for spectra
         }
 
         // The following function measures the corresponding averages
@@ -60,6 +68,10 @@ namespace TempLat {
                     MeansMeasurer::measure(standardOut(i), model.fldGS(i), model.piGS(i) * pow(model.aI, model.alpha - 3) , t);
                     standardOut(i).save();
                     );
+                    if (model.grav_ON){    
+                        MeansMeasurer::measure(standardHOut(0_c), model.fldH(0_c), model.piH(0_c) , t);
+                        standardHOut(0_c).save();
+                    }
         }
 
         // The following function measures the spectra of the norm and its time-derivative.
@@ -78,6 +90,12 @@ namespace TempLat {
                             PSMeasurer.powerSpectrum(model.fldGS(i)),
                             pow(model.aI, 2 * model.alpha - 6) * PSMeasurer.powerSpectrum(model.piGS(i))
                             );
+                        if (model.grav_ON){
+                            spectraHOut(0_c).save(t,
+                             PSMeasurer.powerSpectrum(model.fldH(0_c)),
+                             PSMeasurer.powerSpectrum(model.piH(0_c))
+                            );        
+                        }
                     }
             );
         }
@@ -86,7 +104,9 @@ namespace TempLat {
         /* Put all member variables and private methods here. These may change arbitrarily. */
 
         TempLatVector<MeasurementsSaver<T>> standardOut;
+        TempLatVector<MeasurementsSaver<T>> standardHOut;
         TempLatVector<SpectrumSaver<T>> spectraOut;
+        TempLatVector<SpectrumSaver<T>> spectraHOut;
 
         OccupationNumberMeasurer ONMeasurer;
         bool flagON;

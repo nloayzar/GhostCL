@@ -9,6 +9,7 @@
 
 #include "CosmoInterface/evolvers/leapfrog.h"
 #include "CosmoInterface/evolvers/velocityverlet.h"
+#include "CosmoInterface/evolvers/rk2nstorage.h"
 
 #include "TempLat/util/exception.h"
 
@@ -34,6 +35,9 @@ namespace TempLat {
             if( type == LF){
                 lf = std::make_shared<LeapFrog<T>>(model, rPar);
             }
+            else if(RK2NStorageParameters<T>::isRK2n(type) ){
+                rk2n = std::make_shared<RK2NStorage<Model>>(model, rPar);
+            }
             else{
                 if(!(VelocityVerletParameters<T>::isVerlet(type) )) throw(EvolverTypeNotInEvolver("The evolver type you specified was not implemented in the Evolver class, which dispatch between different evolvers. Abort."));
                 else vv = std::make_shared<VelocityVerlet<T>>(model, rPar);
@@ -44,6 +48,9 @@ namespace TempLat {
         {
             if( type == LF){
                 lf->evolve(model, tMinust0);
+            }
+            else if(RK2NStorageParameters<T>::isRK2n(type)){
+                rk2n->evolve(model, tMinust0);
             }
             else{
                 if(!(VelocityVerletParameters<T>::isVerlet(type) )) throw(EvolverTypeNotInEvolver("The evolver type you specified was not implemented in the Evolver class, which dispatch between different evolvers. Abort."));
@@ -60,6 +67,9 @@ namespace TempLat {
             if(type == LF){
                 lf->sync(model, tMinust0);
             }
+            else if( RK2NStorageParameters<T>::isRK2n(type)){
+                rk2n->sync(model, tMinust0);
+            }
             else { // The default evolvers have fields and momenta living at integer times, so no need to sync. for measurements.
                 if(!(VelocityVerletParameters<T>::isVerlet(type) )) throw(EvolverTypeNotInEvolver("The evolver type you specified was not implemented in the Evolver class, which dispatch between different evolvers. Abort."));
                 else vv->sync(model, tMinust0); //The sync function is used to set aDot to its correct value in the case of fixed background.
@@ -74,6 +84,7 @@ namespace TempLat {
 
         std::shared_ptr<LeapFrog<T> > lf;
         std::shared_ptr<VelocityVerlet<T> > vv;
+         std::shared_ptr<RK2NStorage<Model> > rk2n;
 
         const EvolverType type;
 

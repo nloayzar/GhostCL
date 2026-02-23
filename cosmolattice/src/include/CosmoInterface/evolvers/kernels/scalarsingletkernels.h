@@ -9,6 +9,7 @@
 
 #include "TempLat/util/tdd/tdd.h"
 #include "CosmoInterface/definitions/potential.h"
+#include "CosmoInterface/definitions/gaugederivatives.h"
 #include "TempLat/lattice/algebra/spatialderivatives/latticelaplacian.h"
 
 namespace TempLat {
@@ -27,12 +28,21 @@ namespace TempLat {
         ScalarSingletKernels() = delete;
 
         template <class Model, int N>
-        static auto get(Model& model, Tag<N> n){
+        static auto getON(Model& model, Tag<N> n){
         
         	// Returns kernel for scalar singlets (formed by laplacian and potential derivative):
             return (pow(model.aI, 1 + model.alpha) *
                     LatLapl<Model::NDim>(model.fldS(n))
-                    - pow(model.aI, 3 + model.alpha) * Potential::derivS(model,n) );
+                    -  ((2.0)/(1.0 + 2.0 * model.fldH(0_c))) * (model.piS(n) * model.piH(0_c) - GaugeDerivatives::GradientScalarGradientH(model,n))
+                    - pow(model.aI, 3 + model.alpha) * ((1.0 + 4.0 * model.fldH(0_c))/(1.0 + 2.0 * model.fldH(0_c))) * Potential::derivS(model,n) );                    
+        }
+
+        template <class Model, int N>
+        static auto get(Model& model, Tag<N> n){
+        
+        	// Returns kernel for scalar singlets (formed by laplacian and potential derivative):
+            return (pow(model.aI, 1 + model.alpha) * LatLapl<Model::NDim>(model.fldS(n))
+                    - pow(model.aI, 3 + model.alpha) * Potential::derivS(model,n) );                    
         }
 
 		

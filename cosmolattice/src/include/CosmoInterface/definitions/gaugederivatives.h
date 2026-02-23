@@ -59,10 +59,34 @@ namespace TempLat {
 
         // Forward gradients and forward covariant gradients
 
+        template<class Model, int N>
+        static auto GradientScalarGradientH(Model& model, Tag<N> n)
+        {
+            return Total(i,1,Model::NDim, forwardGradient(model,n,i) * forwardGradientH(model,i));
+        }
+
+         template<class Model, int N>
+        static auto GradientGhostScalarGradientH(Model& model, Tag<N> n)
+        {
+            return Total(i,1,Model::NDim, forwardGradientGhosts(model,n,i) * forwardGradientH(model,i));
+        }
+        
         template<class Model, int N, int I>
         static auto forwardGradient(Model& model, Tag<N> n,  Tag<I> i)
         {
             return (shift<I>(model.fldS(n)) - model.fldS(n)) / model.dx;
+        }
+
+        template<class Model, int N, int I>
+        static auto forwardGradientGhosts(Model& model, Tag<N> n,  Tag<I> i)
+        {
+            return (shift<I>(model.fldGS(n)) - model.fldGS(n)) / model.dx;
+        }
+
+         template<class Model, int I>
+        static auto forwardGradientH(Model& model,  Tag<I> i)
+        {
+            return (shift<I>(model.fldH(0_c)) - model.fldH(0_c)) / model.dx;
         }
 
         template<class Model, int N, int I>

@@ -1,5 +1,5 @@
-#ifndef GHOST_C2G2_H //Usual macro guard to prevent multiple inclusion
-#define GHOST_C2G2_H
+#ifndef GHOST_LV_POT_H //Usual macro guard to prevent multiple inclusion
+#define GHOST_LV_POT_H
 
 /* This file is part of CosmoLattice, available at www.cosmolattice.net .
    Copyright Daniel G. Figueroa, Adrien Florio, Francisco Torrenti and Wessel Valkenburg.
@@ -26,7 +26,7 @@ namespace TempLat
         // In our phi4 example, we only want 2 scalar fields.
         static constexpr size_t NPotTerms = 1;
         static constexpr size_t NGhostMassTerms = 1;
-        static constexpr size_t NGhostPotTerms = 1;
+        static constexpr size_t NGhostPotTerms = 7;
         // Our potential naturaly splits into two terms: the inflaton potential
         // and the interaction with the daughter field.
 
@@ -36,7 +36,7 @@ namespace TempLat
         // them on and specify interactions.
     };
 
-  #define MODELNAME ghost_c2g2
+  #define MODELNAME ghost_LV_pot
   // Here we define the name of the model. This should match the name of your file.
 
   template<class R>
@@ -52,7 +52,7 @@ namespace TempLat
  //...
 private:
 
-  double q, mass_phi, mass_g;
+  double const_4, mass_phi, mass_g;
 // Here are the declaration of the model specific parameters. They are 'private'
 // to force you using them only within your model and not outside.
 
@@ -82,7 +82,7 @@ private:
       // we declare a new parameter which needs to be in the input data.  Its name is
       // "lambda" and we specify it is a 'double'.
 
-      q = parser.get<double>("q");
+      const_4 = parser.get<double>("const_4");
       // In the same way, we declare an input parameter 'q'.
       grav_ON = parser.get<bool>("grav_ON",{false});
 
@@ -111,7 +111,6 @@ private:
         /////////
         // Rescaling for program variables
         /////////
-
         alpha = 0;
         fStar = fldS0[0];
         omegaStar = mass_phi;
@@ -120,6 +119,14 @@ private:
         // and the velocity rescaling omegaStar.
         // See the paper for more information on how to fix them.
 
+        lambda22 = -(pow<2>(mass_phi)-pow<2>(mass_g)) * pow<2>(fStar/omegaStar);
+        lambda40 = (pow<2>(mass_phi)-pow<2>(mass_g) + const_4) * pow<2>(fStar/omegaStar);
+        lambda40 = (pow<2>(mass_phi)-pow<2>(mass_g) - const_4) * pow<2>(fStar/omegaStar);
+        lambda24 = 3.0 * const_4 *  pow<2>(fStar/omegaStar) *  pow<2>(fStar);
+        lambda42 = -lambda24;
+        lambda60 = const_4 *  pow<2>(fStar/omegaStar) *  pow<2>(fStar);
+        lambda06 = -lambda60;
+        
         setInitialPotentialAndMassesFromPotential();
         // Here we call this function to compute the value of the potential on the homogeneous
         // initial condition  (useful to set the initial Hubble rate). We also compute
