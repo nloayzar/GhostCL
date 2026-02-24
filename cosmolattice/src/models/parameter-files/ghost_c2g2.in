@@ -1,5 +1,5 @@
 #Output
-outputfile = ./phi0_3e18_q20_No_grav/
+outputfile = ./test/
 
 #Evolution
 expansion = false

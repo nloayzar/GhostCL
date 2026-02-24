@@ -7,6 +7,8 @@
    
 // File info: Main contributor(s): Daniel G. Figueroa, Adrien Florio, Francisco Torrenti,  Year: 2020
 
+#include <cstdint>
+#include <cstring>
 #include "CosmoInterface/runparameters.h"
 #include "CosmoInterface/measurements/meansmeasurer.h"
 #include "CosmoInterface/measurements/measurementsIO/filesmanager.h"
@@ -26,6 +28,8 @@ namespace TempLat {
      *
      **/
 
+    MakeException(NotANumber);
+
     template <typename T>
     class EnergiesMeasurer {
     public:
@@ -39,6 +43,15 @@ namespace TempLat {
                 energies(filesManager, "energies", amIRoot, append, getEnergyHeaders(model)),  // Output file for volume-average energies.
                 energyCons(filesManager,  "energy_conservation", amIRoot, append, getEnergyConsHeaders(), fixedBackground)   // Output file for checking energy conservation.
                 {
+        }
+
+     
+
+        static inline bool finite_ieee(double x) {
+            std::uint64_t u;
+            std::memcpy(&u, &x, sizeof(double));
+            const std::uint64_t exp = u & 0x7ff0000000000000ULL;
+            return exp != 0x7ff0000000000000ULL; // false for NaN or Inf
         }
 
         template <class Model>
@@ -56,10 +69,24 @@ namespace TempLat {
                     Ekin = average(Energies::kineticS(model,FieldFunctionals::pi2S(model,i)));
                     Egrad =  average(Energies::gradientS(model,FieldFunctionals::grad2S(model,i)));
                     Etot += Ekin + Egrad;  // add to total energy
+
+                    if (!finite_ieee(Ekin)) throw(NotANumber("Simulation ended as it found NaN values."));
+
                     energies.addAverage(Ekin);
                     energies.addAverage(Egrad);
             );
             
+            ForLoop(i,0, Model::NGs-1,
+                    Ekin = average(Energies::kineticGS(model,FieldFunctionals::pi2GS(model,i)));
+                    Egrad =  average(Energies::gradientGS(model,FieldFunctionals::grad2GS(model,i)));
+                    Etot += - Ekin - Egrad;  // add to total energy
+
+                    // if (!finite_ieee(Ekin)) throw(NotANumber("Simulation ended as it found NaN values."));
+
+                    energies.addAverage(Ekin);
+                    energies.addAverage(Egrad);
+            );
+
             // Complex scalars
             ForLoop(i,0, Model::NCs-1,
                     Ekin = average(Energies::kineticCS(model,FieldFunctionals::pi2CS(model,i)));
@@ -102,6 +129,18 @@ namespace TempLat {
                     potTerm = average(model.potentialTerms(i));
                     energies.addAverage(potTerm);
                     Etot += potTerm;
+            );
+
+            ForLoop(i, 0, Model::NGhostPotTerms-1,
+                    potTerm = average(model.ghostpotentialTerms(i));
+                    energies.addAverage(potTerm);
+                    Etot += potTerm;
+            );
+
+            ForLoop(i, 0, Model::NGhostMassTerms-1,
+                    potTerm = average(model.ghostMassTerms(i));
+                    energies.addAverage(potTerm);
+                    Etot += -potTerm;
             );
 
             energies.addAverage(Etot);

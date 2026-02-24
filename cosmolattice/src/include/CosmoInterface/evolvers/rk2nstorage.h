@@ -280,13 +280,13 @@ namespace TempLat {
         T oldA, oldADot, deltaA, deltaADot;//
 
         EvolverType type;
+        bool Grav_ON;
         bool expansion;
 
         T lowOrderControl;
         T largeOrderControl;
         T tolerance;
         T nextDt;
-        bool Grav_ON;
 
 
     };

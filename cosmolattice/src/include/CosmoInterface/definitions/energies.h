@@ -41,6 +41,16 @@ namespace TempLat {
         static inline auto gradientS(Model& model, T fldf) {  // scalar singlet: gradient energy
             return 0.5 * fldf * pow<-2>(model.aI);
         }
+
+        template<class Model, class T>  
+        static inline auto kineticGS(Model& model, T fldf) {  // scalar singlet: kinetic energy
+            return 0.5 * fldf* pow<-6>(model.aI);
+        }
+
+        template<class Model, class T>  
+        static inline auto gradientGS(Model& model, T fldf) {  // scalar singlet: gradient energy
+            return 0.5 * fldf * pow<-2>(model.aI);
+        }
 		
         template<class Model, class T>  
         static inline auto kineticCS(Model& model, T fldf) {  // complex scalar: kinetic energy
