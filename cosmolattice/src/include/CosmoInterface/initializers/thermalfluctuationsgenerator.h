@@ -38,10 +38,15 @@ namespace TempLat {
 
             auto vacuumNorm = Hcut * (model.omegaStar / model.fStar * pow(lSide / pow<2>(f.getDx()), 1.5)) * pow(2 * omega, -0.5)/sqrt(2);
 
-            if(temperature <= 0) return vacuumNorm;
+            Field<T> thermalNorm("thermalNorm_" + f.toString(), f.getToolBox(), f.getLatParams());
+            thermalNorm = vacuumNorm;
 
-            auto nk = 1 / (exp(omega / temperature) - 1);
-            return vacuumNorm * sqrt(1 + 2 * nk);
+            if(temperature > 0) {
+                auto nk = 1 / (exp(omega / temperature) - 1);
+                thermalNorm = vacuumNorm * sqrt(1 + 2 * nk);
+            }
+
+            return thermalNorm;
         }
 
         template<class Model>
