@@ -26,6 +26,8 @@ withGWs = false
 
 #IC
 kCutOff = 4
+ScalarICs = 1
+ScalarICTemperature = 0
 initial_amplitudes = 5.6964e18 0  # homogeneous amplitudes in GeV
 initial_momenta = -4.86735e30 0   # homogeneous amplitudes in GeV2
 

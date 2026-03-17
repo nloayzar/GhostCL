@@ -18,6 +18,8 @@ tMax = 300
 
 #IC
 kCutOff = 6
+ScalarICs = 1
+ScalarICTemperature = 0
 initial_amplitudes = 0
 initial_momenta = 0
 cmplx_field_initial_norm = 0 
