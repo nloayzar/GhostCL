@@ -18,6 +18,8 @@ tMax = 300
 
 #IC
 kCutOff = 18
+ScalarICs = 1
+ScalarICTemperature = 0
 initial_amplitudes = 3.39928e18 0 # homogeneous amplitudes in GeV
 initial_momenta = -3.0714e31 0    # homogeneous amplitudes in GeV2
 

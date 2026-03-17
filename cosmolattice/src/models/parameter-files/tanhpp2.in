@@ -19,6 +19,8 @@ appendToFiles=true
 
 #IC
 kCutOff = 2
+ScalarICs = 1
+ScalarICTemperature = 0
 initial_amplitudes = 2.32106e18 0 # homogeneous amplitudes in GeV
 initial_momenta = -2.51054e31 0   # homogeneous amplitudes in GeV2
 

@@ -9,6 +9,7 @@
 
 #include "TempLat/util/rangeiteration/for_in_range.h"
 #include "CosmoInterface/initializers/fluctuationsgenerator.h"
+#include "CosmoInterface/initializers/thermalfluctuationsgenerator.h"
 
 namespace TempLat {
 
@@ -37,6 +38,23 @@ namespace TempLat {
             // model.fldCS0(i) and model.piCS0(i) are introduced in physical
             // (dimensionful variables), so we transform them to program variables
             // by dividing them by f_* and f_* omega_* respectively.
+            model.fldS += model.fldS0 / model.fStar;
+            model.piS += model.piS0 / model.fStar / model.omegaStar ;
+        }
+
+        template<class Model, typename T>
+        static void initializeScalarsThermal(Model& model, const ThermalFluctuationsGenerator<T>& tfg, T kCutOff, T temperature)
+        {
+
+            // We set thermal fluctuations to the scalar singlets:
+            ForLoop(i,0,Model::Ns-1,
+                tfg.conjugateThermalFluctuations(model, model.fldS(i), model.piS(i), model.masses2S[i], model.aDotI, kCutOff, temperature);
+            );
+
+            model.fldH(0_c) = 0;
+            model.piH(0_c) = 0;
+
+            // We set the initial homogeneous components of the fields and derivatives.
             model.fldS += model.fldS0 / model.fStar;
             model.piS += model.piS0 / model.fStar / model.omegaStar ;
         }
