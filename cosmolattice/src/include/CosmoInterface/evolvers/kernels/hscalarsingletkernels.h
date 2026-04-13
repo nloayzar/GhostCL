@@ -36,7 +36,7 @@ namespace TempLat {
 
             return (pow(model.aI, 1 + model.alpha) *
                     LatLapl<Model::NDim>(model.fldH(0_c))
-                    - pow(model.aI, 3 + model.alpha) * pow<2>(model.fStar / Constants::reducedMPlanck<double>) * (ScalarContribution - GhostContribution + Interactionpotential));
+                    - pow(model.aI, 3 + model.alpha) * pow<2>(model.fStar / model.PlanckMass) * (ScalarContribution - GhostContribution + Interactionpotential));
         }
 
 		

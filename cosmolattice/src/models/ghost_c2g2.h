@@ -52,7 +52,7 @@ namespace TempLat
  //...
 private:
 
-  double q, mass_phi, mass_g;
+  double q, mass_phi, mass_g, planckmass;
 // Here are the declaration of the model specific parameters. They are 'private'
 // to force you using them only within your model and not outside.
 
@@ -77,6 +77,7 @@ private:
 
       mass_phi = parser.get<double>("mass_phi");
       mass_g = parser.get<double>("mass_g");
+      planckmass = parser.get<double>("planckmass",{2.435e18});
       //  We start by initializing our model paramteters. We read them from the
       // input file/command line.  Effectively, by calling 'par.get<double>("lambda")'
       // we declare a new parameter which needs to be in the input data.  Its name is
@@ -113,8 +114,9 @@ private:
         /////////
 
         alpha = 0;
-        fStar = fldS0[0];
+        fStar = mass_phi;
         omegaStar = mass_phi;
+        PlanckMass = planckmass;
         // We now need to specify the rescaling from physical units to program units.
         // This consists of the  time rescaling exponent alpha, the field rescaling fStar
         // and the velocity rescaling omegaStar.
@@ -137,76 +139,42 @@ private:
    // Program potential (add as many functions as terms are in the potential)
    /////////
 
-    auto potentialTerms(Tag<0>) // Inflaton potential energy
-    //
-    // Now we need to define the physics of the model. We start by defining the potential.
-    // We need to specify as  many potential  terms as we specified in the ModelParams,
-    // here 2. Then for every potential terms, we define a function
-    //' auto potentialTerms(Tag<N>)'  with N =0,...,NPot -1. The type 'Tag<N>' simply allows
-    // to define different function with the same name. The 'auto' keyword lets the compiler
-    // figure out on itself what is the actual return type of the function.
+    auto potentialTerms(Tag<0>) // Scalar mass term 
     {
         return 0.5 * pow<2>(fldS(0_c));
-        // Some notations.  The scalar fields are stored in a collection called 'fldS'.
-        // The scalar fields are labelled  from 0 to Ns-1. The field say number 1 is
-        // accessed through the syntax 'fldS(0_c)'. The function 'pow<N>(x)'. Works with the
-        // known-at-compile-time integer N and compute the expression x*...*x N times.
-        // If you don't know the integer at compile time or you don't have an integer,
-        // use the more usual syntax pow(x, N).
-        // These 'pow' functions are just one example of the many algebraic functions which
-        // can be applied to our fields,  see the manual for an exhaustive list
-        // and what to do if you want to implement a new one.
     }
 
-    auto ghostpotentialTerms(Tag<0>) // 
+    auto ghostpotentialTerms(Tag<0>) // Scalar Ghost interaction term 
     {
         return 0.5 * q * pow<2>(fldS(0_c)) * pow<2>(fldGS(0_c));
     }
 
-    auto ghostMassTerms(Tag<0>) // Interaction energy
+    auto ghostMassTerms(Tag<0>) // Ghost mass term
     {
         return 0.5 * pow<2>(mass_g/omegaStar) * pow<2>(fldGS(0_c));
     }
-	
-	
-	
-    // Advanced note (ignore if you are satisfied with the above) :
-    // - The 'auto' return type is important because the object returned is
-    // not say an array containing  the value of the expression but the expression itself, which can and will be
-    // evaluate later on. The type of the  expression itself depends on the expression and can be intricated. See
-    // manual for more  details.
-    // - The syntax 0_c is equivalent to Tag<0>(),
-    // i.e. creating  an object of type 0. This operator '_c' is a modern C++ user-defined type literal,
-    // taken from Boost and located in fcn/util/rangeiteration/tagliteral.h .
-
-
 
    /////////
    // Derivatives of the program potential with respect fields
    // (add one function for each field).
    /////////
 
-    auto potDeriv(Tag<0>) // Derivative with respect to the inflaton.
-    // In exactly the same fashion, we  need to define one derivative of the potential
-    // per scalar field (2 in this case).  The integer in Tag<0> tells you the field with
-    // respect to which you are defining the derivative of the potential of.
+    auto potDeriv(Tag<0>)  // Derivative with respect of scalar of scalar mass term and interaction term
     {
       return   fldS(0_c) + q * fldS(0_c) * pow<2>(fldGS(0_c)) ;
     }
 
-    auto potDerivGS(Tag<0>)  // Derivative with respect to the daughter field.
+    auto potDerivGS(Tag<0>)  // Derivative with respect of ghost of interaction term
     {
       return  q * fldGS(0_c) * pow<2>(fldS(0_c));
     }
 
-    auto potMassDerivGS(Tag<0>)  // Derivative with respect to the daughter field.
+    auto potMassDerivGS(Tag<0>)  // Derivative respect of ghost of ghost mass term
     {
       return  pow<2>(mass_g/omegaStar) * (fldGS(0_c));
     }
 	
-	
-	
-    /////////
+   /////////
    //  Second derivatives of the program potential with respect fields
    // (add one function for each field)
    /////////

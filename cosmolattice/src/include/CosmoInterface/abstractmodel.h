@@ -202,7 +202,7 @@ namespace TempLat {
 
         T grav_ON;
 
-        T alpha, fStar, omegaStar; //Rescalings for program variable definitions: (alpha,f_*,w_*)
+        T alpha, fStar, omegaStar, PlanckMass; //Rescalings for program variable definitions: (alpha,f_*,w_*)
 
         T dx, kIR, dt;  //Length element and time step
 

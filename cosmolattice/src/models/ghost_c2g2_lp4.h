@@ -25,7 +25,7 @@ namespace TempLat
         static constexpr size_t NGhostScalars = 1;
         // In our phi4 example, we only want 2 scalar fields.
         static constexpr size_t NPotTerms = 1;
-        static constexpr size_t NGhostMassTerms = 1;
+        static constexpr size_t NGhostMassTerms = 2;
         static constexpr size_t NGhostPotTerms = 1;
         // Our potential naturaly splits into two terms: the inflaton potential
         // and the interaction with the daughter field.
@@ -114,7 +114,7 @@ private:
         /////////
 
         alpha = 0;
-        fStar = fldS0[0];
+        fStar = mass_phi;
         omegaStar = mass_phi;
         // We now need to specify the rescaling from physical units to program units.
         // This consists of the  time rescaling exponent alpha, the field rescaling fStar
