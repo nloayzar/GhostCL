@@ -1,19 +1,19 @@
 #Output
-outputfile = ./test_mp1e3/
+outputfile = ./
 
 #Evolution
 expansion = false
-evolver = RK2
+evolver = LF
 
 #Lattice
-N = 128
+N = 512
 dt = 0.05
 kIR = .1
 
 #Times
-tOutputFreq = 1
-tOutputInfreq = 1
-tMax = 200
+tOutputFreq = 10
+tOutputInfreq = 100
+tMax = 1e6
 
 #Spectra options
 PS_type = 1
@@ -22,7 +22,7 @@ PS_version = 1
 #GWs
 GWprojectorType = 1
 withGWs = false
-grav_ON = true
+grav_ON = false
 
 #IC
 kCutOff = 100
@@ -34,5 +34,6 @@ initial_momenta = 0.0   # homogeneous amplitudes in GeV2
 #Model Parameters
 mass_phi = 1.0
 mass_g = 1.1
+lambda_phi = 1e-4
+lambda_g = 1e-4
 q = 0.1
-planckmass = 1e3

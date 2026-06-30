@@ -30,8 +30,8 @@ namespace TempLat {
         template <class Model>
         static auto get(Model& model){
             
-            auto ScalarContribution = FieldFunctionals::grad2S(model, 0_c) + FieldFunctionals::pi2S(model, 0_c) - 4 * Potential::potential(model);
-            auto GhostContribution = FieldFunctionals::grad2GS(model, 0_c) + FieldFunctionals::pi2GS(model, 0_c) - 4 * Potential::ghostmass(model);
+            auto ScalarContribution = -FieldFunctionals::grad2S(model, 0_c) + FieldFunctionals::pi2S(model, 0_c) - 4 * Potential::potential(model);
+            auto GhostContribution = -FieldFunctionals::grad2GS(model, 0_c) + FieldFunctionals::pi2GS(model, 0_c) - 4 * Potential::ghostmass(model);
             auto Interactionpotential = - 4 * Potential::ghostpotential(model);
 
             return (pow(model.aI, 1 + model.alpha) *

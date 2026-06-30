@@ -1,5 +1,5 @@
-#ifndef GHOST_C2G2_LG4_H //Usual macro guard to prevent multiple inclusion
-#define GHOST_C2G2_LG4_H
+#ifndef GHOST_P2G2_LP4_LG4_H //Usual macro guard to prevent multiple inclusion
+#define GHOST_P2G2_LP4_LG4_H
 
 /* This file is part of CosmoLattice, available at www.cosmolattice.net .
    Copyright Daniel G. Figueroa, Adrien Florio, Francisco Torrenti and Wessel Valkenburg.
@@ -24,7 +24,7 @@ namespace TempLat
     	  static constexpr size_t NScalars = 1;
         static constexpr size_t NGhostScalars = 1;
         // In our phi4 example, we only want 2 scalar fields.
-        static constexpr size_t NPotTerms = 1;
+        static constexpr size_t NPotTerms = 2;
         static constexpr size_t NGhostMassTerms = 2;
         static constexpr size_t NGhostPotTerms = 1;
         // Our potential naturaly splits into two terms: the inflaton potential
@@ -36,7 +36,7 @@ namespace TempLat
         // them on and specify interactions.
     };
 
-  #define MODELNAME ghost_c2g2_lg4
+  #define MODELNAME ghost_p2g2_lp4_lg4
   // Here we define the name of the model. This should match the name of your file.
 
   template<class R>
@@ -52,7 +52,7 @@ namespace TempLat
  //...
 private:
 
-  double q, mass_phi, mass_g, lambda;
+  double q, mass_phi, mass_g, lambda_phi, lambda_g;
 // Here are the declaration of the model specific parameters. They are 'private'
 // to force you using them only within your model and not outside.
 
@@ -83,7 +83,8 @@ private:
       // "lambda" and we specify it is a 'double'.
 
       q = parser.get<double>("q");
-      lambda = parser.get<double>("lambda");
+      lambda_phi = parser.get<double>("lambda_phi");
+      lambda_g = parser.get<double>("lambda_g");
       // In the same way, we declare an input parameter 'q'.
       grav_ON = parser.get<bool>("grav_ON",{false});
 
@@ -159,6 +160,13 @@ private:
         // and what to do if you want to implement a new one.
     }
 
+    auto potentialTerms(Tag<1>) // Scalar potential energy
+    //
+    {
+        return 0.25 * lambda_phi * * pow<2>(fStar/omegaStar) * pow<4>(fldS(0_c));
+    
+    }
+
     auto ghostpotentialTerms(Tag<0>) // 
     {
         return 0.5 * q * pow<2>(fldS(0_c)) * pow<2>(fldGS(0_c));
@@ -171,7 +179,7 @@ private:
     
     auto ghostMassTerms(Tag<1>) // Interaction energy
     {
-        return 0.25 * lambda * pow<2>(fStar/omegaStar) * pow<4>(fldGS(0_c));
+        return 0.25 * lambda_g * pow<2>(fStar/omegaStar) * pow<4>(fldGS(0_c));
     }
 	
 	
@@ -196,7 +204,7 @@ private:
     // per scalar field (2 in this case).  The integer in Tag<0> tells you the field with
     // respect to which you are defining the derivative of the potential of.
     {
-      return   fldS(0_c) + q * fldS(0_c) * pow<2>(fldGS(0_c)) ;
+      return   fldS(0_c) + q * fldS(0_c) * pow<2>(fldGS(0_c)) + lambda_phi * pow<2>(fStar/omegaStar) * pow<3>(fldS(0_c));
     }
 
     auto potDerivGS(Tag<0>)  // Derivative with respect to the daughter field.
@@ -206,7 +214,7 @@ private:
 
     auto potMassDerivGS(Tag<0>)  // Derivative with respect to the daughter field.
     {
-      return  pow<2>(mass_g/omegaStar) * (fldGS(0_c)) + lambda * pow<2>(fStar/omegaStar) * pow<3>(fldGS(0_c));
+      return  pow<2>(mass_g/omegaStar) * (fldGS(0_c)) + lambda_g * pow<2>(fStar/omegaStar) * pow<3>(fldGS(0_c));
     }
 	
 	
@@ -221,12 +229,12 @@ private:
     // in the same fashion the second derivatives of the potential
     // (put 'return 0' if you are not using this feature).
     {
-      return  1.0 +  q * pow<2>(fldGS(0_c)) ;
+      return  1.0 +  q * pow<2>(fldGS(0_c)) + 3.0 *  lambda_phi * pow<2>(fStar/omegaStar) * pow<2>(fldS(0_c));
     }
 
     auto potDerivG2(Tag<0>) // Second derivative with respect daughter field
     {
-      return  pow<2>(mass_g/omegaStar) + q * pow<2>(fldS(0_c)) + 3.0 *  lambda * pow<2>(fStar/omegaStar) * pow<2>(fldGS(0_c));
+      return  pow<2>(mass_g/omegaStar) + q * pow<2>(fldS(0_c)) + 3.0 *  lambda_g * pow<2>(fStar/omegaStar) * pow<2>(fldGS(0_c));
     }
 		
 	
