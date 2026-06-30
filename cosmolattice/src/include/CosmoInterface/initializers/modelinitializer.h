@@ -8,7 +8,6 @@
 // File info: Main contributor(s): Daniel G. Figueroa, Adrien Florio, Francisco Torrenti,  Year: 2020
 
 #include "CosmoInterface/initializers/fluctuationsgenerator.h"
-#include "CosmoInterface/initializers/thermalfluctuationsgenerator.h"
 #include "CosmoInterface/initializers/scalefactorinitializer.h"
 #include "CosmoInterface/initializers/ghostscalarsingletinitializer.h"
 #include "CosmoInterface/initializers/scalarsingletinitializer.h"
@@ -29,8 +28,7 @@ namespace TempLat {
         /* Put public methods here. These should change very little over time. */
         template<class Model>
         ModelInitializer(Model& model, T pLSide, std::string pSeed) :
-        fg(model, pLSide, pSeed),
-        tfg(model, pLSide, pSeed)
+        fg(model, pLSide, pSeed)
         {
         }
 
@@ -42,8 +40,10 @@ namespace TempLat {
             
             // Initialize scalar singlets:
             if(Model::Ns > 0) {
-                if(rPar.scalarICs == 2) ScalarSingletInitializer::initializeScalarsThermal(model, tfg, rPar.kCutoff, rPar.scalarICTemperature);
-                else ScalarSingletInitializer::initializeScalars(model, fg, rPar.kCutoff);
+                if(rPar.scalarICs == 2) {
+                    throw(RunParametersInconsistent("Thermal scalar initial conditions are disabled in this build. Use ScalarICs = 1 for vacuum initial conditions."));
+                }
+                ScalarSingletInitializer::initializeScalars(model, fg, rPar.kCutoff);
             }
             
             // Initialize ghost scalar singlets:
@@ -73,7 +73,6 @@ namespace TempLat {
         /* Put all member variables and private methods here. These may change arbitrarily. */
 
         FluctuationsGenerator<T> fg;
-        ThermalFluctuationsGenerator<T> tfg;
     };
 
     struct ModelInitializerTester{

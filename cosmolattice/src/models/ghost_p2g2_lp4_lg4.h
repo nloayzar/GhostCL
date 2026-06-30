@@ -163,7 +163,7 @@ private:
     auto potentialTerms(Tag<1>) // Scalar potential energy
     //
     {
-        return 0.25 * lambda_phi * * pow<2>(fStar/omegaStar) * pow<4>(fldS(0_c));
+        return 0.25 * lambda_phi * pow<2>(fStar/omegaStar) * pow<4>(fldS(0_c));
     
     }
 
