@@ -14,6 +14,7 @@
 #include <limits>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "CosmoInterface/definitions/averages.h"
 #include "CosmoInterface/definitions/energies.h"
@@ -55,20 +56,29 @@ namespace TempLat {
                 enabled(par.stabilityEstimator && HasStabilityEstimatorParameters<Model>::value),
                 expansion(par.expansion),
                 fixedBackground(par.fixedBackground),
-                stopThreshold(par.stabilityEstimatorStopThreshold),
-                kMax2(computeKMax2<Model>(par)),
+                stopGChiThreshold(par.stabilityEstimatorStopGChiThreshold),
+                stopKPhiIntThreshold(par.stabilityEstimatorStopKPhiIntThreshold),
+                kCutoff(par.kCutoff),
                 rhoTot0(0),
                 haveRhoTot0(false),
+                haveInitialGhostSpectrum(false),
                 stopRequested(false),
                 output(filesManager.getWorkingDir() + "stability_estimator.txt",
+                       amIRoot && enabled,
+                       append ? std::ios_base::app : std::ios_base::out),
+                spectralFrontOutput(filesManager.getWorkingDir() + "stability_spectral_front.txt",
                        amIRoot && enabled,
                        append ? std::ios_base::app : std::ios_base::out)
         {
             if (amIRoot && enabled && !append) {
                 output << "#t max_phi2 max_chi2 max_pi_phi2 max_pi_chi2 max_grad_phi2 max_grad_chi2 "
-                       << "C_phi C_chi C_max C_phi_avg C_chi_avg tachyonic_indicator "
+                       << "G_chi K_phi_int G_chi_avg K_phi_int_avg tachyonic_indicator "
                        << "energy_conservation rho_tot\n";
+                spectralFrontOutput << "#t k_peak_chi k_grow_10 k_grow_100 k_grow_1000 "
+                                    << "k_grow_10_over_kCutOff k_grow_100_over_kCutOff "
+                                    << "k_grow_1000_over_kCutOff\n";
                 output.flush();
+                spectralFrontOutput.flush();
             }
         }
 
@@ -89,20 +99,12 @@ namespace TempLat {
 
             const T q = model.stabilityEstimatorQ();
             const T muG2 = model.stabilityEstimatorMuG2();
-            const T lambdaPhi = model.stabilityEstimatorLambdaPhi();
-            const T lambdaG = model.stabilityEstimatorLambdaG();
-
-            const T cPhi2 = kMax2 + 1 + 3 * lambdaPhi * maxPhi2 + q * maxChi2;
-            const T cChi2 = kMax2 + muG2 + 3 * lambdaG * maxChi2 - q * maxPhi2;
-            const T cPhiAvg2 = kMax2 + 1 + 3 * lambdaPhi * avgPhi2 + q * avgChi2;
-            const T cChiAvg2 = kMax2 + muG2 + 3 * lambdaG * avgChi2 - q * avgPhi2;
-
-            const T cPhi = model.dt * std::sqrt(std::abs(cPhi2));
-            const T cChi = model.dt * std::sqrt(std::abs(cChi2));
-            const T cMax = std::max(cPhi, cChi);
-            const T cPhiAvg = model.dt * std::sqrt(std::abs(cPhiAvg2));
-            const T cChiAvg = model.dt * std::sqrt(std::abs(cChiAvg2));
             const T tachyonicIndicator = q * maxPhi2 - muG2;
+            const T tachyonicIndicatorAvg = q * avgPhi2 - muG2;
+            const T gChi = model.dt * std::sqrt(std::max(tachyonicIndicator, static_cast<T>(0)));
+            const T gChiAvg = model.dt * std::sqrt(std::max(tachyonicIndicatorAvg, static_cast<T>(0)));
+            const T kPhiInt = model.dt * model.dt * q * maxChi2;
+            const T kPhiIntAvg = model.dt * model.dt * q * avgChi2;
 
             const T rhoTot = Energies::rho(model);
             const T energyConservation = computeEnergyConservation(model, rhoTot, isInitialTime);
@@ -115,22 +117,22 @@ namespace TempLat {
                    << maxPiChi2 << " "
                    << maxGradPhi2 << " "
                    << maxGradChi2 << " "
-                   << cPhi << " "
-                   << cChi << " "
-                   << cMax << " "
-                   << cPhiAvg << " "
-                   << cChiAvg << " "
+                   << gChi << " "
+                   << kPhiInt << " "
+                   << gChiAvg << " "
+                   << kPhiIntAvg << " "
                    << tachyonicIndicator << " "
                    << energyConservation << " "
                    << rhoTot << "\n";
             output.flush();
 
-            if (!areEstimatorValuesFinite(maxPhi2, maxChi2, cPhi, cChi, cMax, rhoTot)) {
+            if (!areEstimatorValuesFinite(maxPhi2, maxChi2, gChi, kPhiInt, rhoTot)) {
                 stopRequested = true;
                 return;
             }
 
-            if (stopThreshold > 0 && cMax > stopThreshold) {
+            if ((stopGChiThreshold > 0 && gChi > stopGChiThreshold)
+                || (stopKPhiIntThreshold > 0 && kPhiInt > stopKPhiIntThreshold)) {
                 stopRequested = true;
             }
         }
@@ -141,27 +143,80 @@ namespace TempLat {
         {
         }
 
+        template <class Model, class SpectrumMeasurer>
+        typename std::enable_if<HasStabilityEstimatorParameters<Model>::value, void>::type
+        measureSpectralFront(Model& model, T t, SpectrumMeasurer& PSMeasurer)
+        {
+            if (!enabled) return;
+
+            auto spectrum = PSMeasurer.powerSpectrum(model.fldGS(0_c));
+            if (!haveInitialGhostSpectrum || initialGhostSpectrum.size() != spectrum.size()) {
+                initialGhostSpectrum.clear();
+                initialGhostSpectrum.reserve(spectrum.size());
+                for (auto&& bin : spectrum) {
+                    initialGhostSpectrum.emplace_back(bin.getValue().average);
+                }
+                haveInitialGhostSpectrum = true;
+            }
+
+            T kPeak = 0;
+            T pPeak = -std::numeric_limits<T>::max();
+            T kGrow10 = 0;
+            T kGrow100 = 0;
+            T kGrow1000 = 0;
+
+            for (size_t i = 0; i < spectrum.size(); ++i) {
+                const T k = spectrum[i].getBin().average;
+                const T p = spectrum[i].getValue().average;
+
+                if (p > pPeak) {
+                    pPeak = p;
+                    kPeak = k;
+                }
+
+                const T pInitial = initialGhostSpectrum[i];
+                if (pInitial > 0 && finiteIEEE(p) && finiteIEEE(pInitial)) {
+                    const T ratio = p / pInitial;
+                    if (ratio > 10) kGrow10 = k;
+                    if (ratio > 100) kGrow100 = k;
+                    if (ratio > 1000) kGrow1000 = k;
+                }
+            }
+
+            spectralFrontOutput << std::setprecision(15)
+                                << t << " "
+                                << kPeak << " "
+                                << kGrow10 << " "
+                                << kGrow100 << " "
+                                << kGrow1000 << " "
+                                << ratioToKCutoff(kGrow10) << " "
+                                << ratioToKCutoff(kGrow100) << " "
+                                << ratioToKCutoff(kGrow1000) << "\n";
+            spectralFrontOutput.flush();
+        }
+
+        template <class Model, class SpectrumMeasurer>
+        typename std::enable_if<!HasStabilityEstimatorParameters<Model>::value, void>::type
+        measureSpectralFront(Model&, T, SpectrumMeasurer&)
+        {
+        }
+
         bool shouldStop() const
         {
             return stopRequested;
         }
 
-        T getStopThreshold() const
+        T getStopGChiThreshold() const
         {
-            return stopThreshold;
+            return stopGChiThreshold;
+        }
+
+        T getStopKPhiIntThreshold() const
+        {
+            return stopKPhiIntThreshold;
         }
 
     private:
-        template <class Model>
-        static T computeKMax2(const RunParameters<T>& par)
-        {
-            if (par.stabilityEstimatorUseKCutoff && std::isfinite(par.kCutoff)) {
-                return par.kCutoff * par.kCutoff;
-            }
-
-            return 4 * static_cast<T>(Model::NDim) / (par.dx * par.dx);
-        }
-
         template <class Model>
         T computeEnergyConservation(Model& model, T rhoTot, bool isInitialTime)
         {
@@ -180,13 +235,12 @@ namespace TempLat {
             return std::abs(1.0 - rhoTot / rhoTot0);
         }
 
-        bool areEstimatorValuesFinite(T maxPhi2, T maxChi2, T cPhi, T cChi, T cMax, T rhoTot) const
+        bool areEstimatorValuesFinite(T maxPhi2, T maxChi2, T gChi, T kPhiInt, T rhoTot) const
         {
             return finiteIEEE(maxPhi2)
                    && finiteIEEE(maxChi2)
-                   && finiteIEEE(cPhi)
-                   && finiteIEEE(cChi)
-                   && finiteIEEE(cMax)
+                   && finiteIEEE(gChi)
+                   && finiteIEEE(kPhiInt)
                    && finiteIEEE(rhoTot);
         }
 
@@ -199,16 +253,26 @@ namespace TempLat {
             return exp != 0x7ff0000000000000ULL;
         }
 
+        T ratioToKCutoff(T k) const
+        {
+            if (!std::isfinite(kCutoff) || kCutoff <= 0) return 0;
+            return k / kCutoff;
+        }
+
         bool amIRoot;
         bool enabled;
         bool expansion;
         bool fixedBackground;
-        T stopThreshold;
-        T kMax2;
+        T stopGChiThreshold;
+        T stopKPhiIntThreshold;
+        T kCutoff;
         T rhoTot0;
         bool haveRhoTot0;
+        bool haveInitialGhostSpectrum;
+        std::vector<T> initialGhostSpectrum;
         bool stopRequested;
         OutputStream<T> output;
+        OutputStream<T> spectralFrontOutput;
     };
 
 }

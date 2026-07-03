@@ -67,11 +67,9 @@ namespace TempLat {
                 GWprojectorType(par.get<int>("GWprojectorType",2)), // Type of GWprojector (real = 1, backwards = 2 (default), forward = 3)
                 withGWs(par.get<bool>("withGWs", false, Important)),
                 flagON(par.get<bool>("OccNumb", false)),
-                scalarICs(par.get<int>("ScalarICs",1)), // Initial conditions for scalar singlets: 1=vacuum, 2=thermal
-                scalarICTemperature(par.get<T>("ScalarICTemperature",0.0)), // Thermal temperature for scalar ICs (program units)
                 stabilityEstimator(par.get<bool>("stabilityEstimator", true)),
-                stabilityEstimatorUseKCutoff(par.get<bool>("stabilityEstimatorUseKCutOff", false)),
-                stabilityEstimatorStopThreshold(par.get<T>("stabilityEstimatorStopThreshold", 1.5))
+                stabilityEstimatorStopGChiThreshold(par.get<T>("stabilityEstimatorStopGChiThreshold", 1.0)),
+                stabilityEstimatorStopKPhiIntThreshold(par.get<T>("stabilityEstimatorStopKPhiIntThreshold", 1.0))
         {
             if (AlmostEqual(lSide, -1)) {
                 if (AlmostEqual(kIR, -1))
@@ -116,8 +114,6 @@ namespace TempLat {
             if(powerSpectrumType < 1 or  powerSpectrumType > 2)  throw(RunParametersInconsistent("powerSpectrumType " + std::to_string(powerSpectrumType) + " is not a valid powerSpectrumType."));
             if(powerSpectrumVersion < 1 or  powerSpectrumType > 3) throw(RunParametersInconsistent("powerSpectrumVersion " + std::to_string(powerSpectrumVersion) + " is not a valid powerSpectrumVersion."));
             if(spectraVerbosity < 0 or  spectraVerbosity > 2) throw(RunParametersInconsistent("spectraVerbosity " + std::to_string(spectraVerbosity) + " is not a valid spectraVerbosity."));
-            if(scalarICs < 1 or scalarICs > 2) throw(RunParametersInconsistent("ScalarICs " + std::to_string(scalarICs) + " is not a valid choice. Allowed values are 1 (vacuum) and 2 (thermal)."));
-            if(scalarICTemperature < 0) throw(RunParametersInconsistent("ScalarICTemperature must be non-negative."));
         }
 
         void setDoWeRestart(bool pDoWeRestart)
@@ -182,11 +178,9 @@ namespace TempLat {
       const int GWprojectorType;
       const bool withGWs;
       const bool flagON;
-      const int scalarICs;
-      const T scalarICTemperature;
       const bool stabilityEstimator;
-      const bool stabilityEstimatorUseKCutoff;
-      const T stabilityEstimatorStopThreshold;
+      const T stabilityEstimatorStopGChiThreshold;
+      const T stabilityEstimatorStopKPhiIntThreshold;
 
 
 

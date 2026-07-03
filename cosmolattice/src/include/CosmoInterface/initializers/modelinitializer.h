@@ -40,9 +40,6 @@ namespace TempLat {
             
             // Initialize scalar singlets:
             if(Model::Ns > 0) {
-                if(rPar.scalarICs == 2) {
-                    throw(RunParametersInconsistent("Thermal scalar initial conditions are disabled in this build. Use ScalarICs = 1 for vacuum initial conditions."));
-                }
                 ScalarSingletInitializer::initializeScalars(model, fg, rPar.kCutoff);
             }
             

@@ -17,8 +17,8 @@ tMax = 1e6
 
 # Stability estimator
 stabilityEstimator = true
-stabilityEstimatorUseKCutOff = false
-stabilityEstimatorStopThreshold = 1.5
+stabilityEstimatorStopGChiThreshold = 1.0
+stabilityEstimatorStopKPhiIntThreshold = 1.0
 
 #Spectra options
 PS_type = 1

@@ -111,6 +111,8 @@ namespace TempLat {
           // Infrequent output (spectra):
           if(n% infreqOutputFreq == 0 ) {
 
+              stabilityEstimatorMeasurer.measureSpectralFront(model, t, PSMeasurer);
+
               scalarSingletMeasurer.measureSpectra(model,t, PSMeasurer);
               // Scalar singlet spectra
               ghostscalarSingletMeasurer.measureSpectra(model,t, PSMeasurer);
