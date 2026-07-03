@@ -137,6 +137,11 @@ int main (int argc, char* argv[] ) {
             // Note that measurer.measure advances automatically conjugate momenta by half step in case
             // the evolver (e.g. leapfrog) required them to have been synchronised previously for
             // a measurement.
+            if (measurer.shouldStop()) {
+                if(iAmRoot) say << "Stopping simulation at t = " << t
+                                << " because the stability estimator requested it.\n";
+                break;
+            }
         }
 
         evolver.evolve(model, t - runParams.t0);

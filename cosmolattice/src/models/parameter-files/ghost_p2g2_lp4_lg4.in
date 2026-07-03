@@ -15,6 +15,11 @@ tOutputFreq = 10
 tOutputInfreq = 100
 tMax = 1e6
 
+# Stability estimator
+stabilityEstimator = true
+stabilityEstimatorUseKCutOff = false
+stabilityEstimatorStopThreshold = 1.5
+
 #Spectra options
 PS_type = 1
 PS_version = 1

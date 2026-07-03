@@ -68,7 +68,10 @@ namespace TempLat {
                 withGWs(par.get<bool>("withGWs", false, Important)),
                 flagON(par.get<bool>("OccNumb", false)),
                 scalarICs(par.get<int>("ScalarICs",1)), // Initial conditions for scalar singlets: 1=vacuum, 2=thermal
-                scalarICTemperature(par.get<T>("ScalarICTemperature",0.0)) // Thermal temperature for scalar ICs (program units)
+                scalarICTemperature(par.get<T>("ScalarICTemperature",0.0)), // Thermal temperature for scalar ICs (program units)
+                stabilityEstimator(par.get<bool>("stabilityEstimator", true)),
+                stabilityEstimatorUseKCutoff(par.get<bool>("stabilityEstimatorUseKCutOff", false)),
+                stabilityEstimatorStopThreshold(par.get<T>("stabilityEstimatorStopThreshold", 1.5))
         {
             if (AlmostEqual(lSide, -1)) {
                 if (AlmostEqual(kIR, -1))
@@ -181,6 +184,9 @@ namespace TempLat {
       const bool flagON;
       const int scalarICs;
       const T scalarICTemperature;
+      const bool stabilityEstimator;
+      const bool stabilityEstimatorUseKCutoff;
+      const T stabilityEstimatorStopThreshold;
 
 
 

@@ -19,6 +19,7 @@
 #include "CosmoInterface/measurements/u1measurer.h"
 #include "CosmoInterface/measurements/su2measurer.h"
 #include "CosmoInterface/measurements/energiesmeasurer.h"
+#include "CosmoInterface/measurements/stabilityestimatormeasurer.h"
 #include "CosmoInterface/measurements/scalefactormeasurer.h"
 #include "CosmoInterface/measurements/energysnapshotmeasurer.h"
 
@@ -55,12 +56,14 @@ namespace TempLat {
           u1Measurer(model,filesManager, par, par.appendMode),   // Measurer for U(1) gauge fields
           su2Measurer(model,filesManager, par, par.appendMode),    // Measurer for SU(2) gauge fields
           energiesMeasurer(model,filesManager, par, par.appendMode),   // Measurer of energies and scale factor
+          stabilityEstimatorMeasurer(model, filesManager, par, par.appendMode),
           scaleFactorMeasurer(model,filesManager, par, par.appendMode),   // Measurer of energies and scale factor
           energySnapshotsMeasurer(model, filesManager,  par.energySnapshotMeas),    // Measurer of energy and field snapshots
           spectraTime(filesManager, "spectra_times", amIRoot, par.appendMode, {"tSpectra"}, filesManager.getUseHDF5()),   // Output file that indicates at which times spectra are computed
           PSMeasurer(par),
           // TestTransTrace(par),
-          GWsPSMeasurer(par)
+          GWsPSMeasurer(par),
+          stopRequested(false)
         {
         }
 
@@ -70,6 +73,10 @@ namespace TempLat {
         void measure(int n, R t, Model& model)
         {
             bool isInitialTime = (n==0);
+            stopRequested = false;
+
+            stabilityEstimatorMeasurer.measure(model, t, isInitialTime);
+            stopRequested = stabilityEstimatorMeasurer.shouldStop();
 
             // Frequent output (averages):
             if( (n % outputFreq == 0 )  ){
@@ -146,6 +153,11 @@ namespace TempLat {
         {
             return (n % outputFreq == 0 || n % infreqOutputFreq == 0 || n % rareOutputFreq == 0 );
         }
+
+        bool shouldStop() const
+        {
+            return stopRequested;
+        }
 		
 		
     private:
@@ -166,6 +178,7 @@ namespace TempLat {
         U1Measurer<T> u1Measurer;
         SU2Measurer<T> su2Measurer;
         EnergiesMeasurer<T> energiesMeasurer;
+        StabilityEstimatorMeasurer<T> stabilityEstimatorMeasurer;
         ScaleFactorMeasurer<T> scaleFactorMeasurer;
         EnergySnapshotsMeasurer energySnapshotsMeasurer;
 
@@ -173,6 +186,7 @@ namespace TempLat {
         PowerSpectrumMeasurer PSMeasurer;
         // CheckTT TestTransTrace;
         GWsPowerSpectrumMeasurer GWsPSMeasurer;
+        bool stopRequested;
 
 
 

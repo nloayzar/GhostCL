@@ -132,7 +132,27 @@ private:
         /*
           masses2S = {..., ...};
           setInitialPotentialFromPotential();
-         */
+        */
+    }
+
+    double stabilityEstimatorQ() const
+    {
+      return q;
+    }
+
+    double stabilityEstimatorMuG2() const
+    {
+      return (mass_g / omegaStar) * (mass_g / omegaStar);
+    }
+
+    double stabilityEstimatorLambdaPhi() const
+    {
+      return lambda_phi * (fStar / omegaStar) * (fStar / omegaStar);
+    }
+
+    double stabilityEstimatorLambdaG() const
+    {
+      return lambda_g * (fStar / omegaStar) * (fStar / omegaStar);
     }
 
    /////////
