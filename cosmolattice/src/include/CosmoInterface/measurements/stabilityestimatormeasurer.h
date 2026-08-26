@@ -73,6 +73,8 @@ namespace TempLat {
             if (amIRoot && enabled && !append) {
                 output << "#t max_phi2 max_chi2 max_pi_phi2 max_pi_chi2 max_grad_phi2 max_grad_chi2 "
                        << "G_chi K_phi_int G_chi_avg K_phi_int_avg tachyonic_indicator "
+                       << "tachyonic_indicator_lambda tachyonic_indicator_lambda_avg "
+                       << "G_chi_lambda G_chi_lambda_avg "
                        << "energy_conservation rho_tot\n";
                 spectralFrontOutput << "#t k_peak_chi k_grow_10 k_grow_100 k_grow_1000 "
                                     << "k_grow_10_over_kCutOff k_grow_100_over_kCutOff "
@@ -99,10 +101,19 @@ namespace TempLat {
 
             const T q = model.stabilityEstimatorQ();
             const T muG2 = model.stabilityEstimatorMuG2();
+            const T lambdaG = model.stabilityEstimatorLambdaG();
             const T tachyonicIndicator = q * maxPhi2 - muG2;
             const T tachyonicIndicatorAvg = q * avgPhi2 - muG2;
+            const T tachyonicIndicatorLambda = max(
+                    q * pow<2>(model.fldS(0_c))
+                    - muG2
+                    - static_cast<T>(3) * lambdaG * pow<2>(model.fldGS(0_c)));
+            const T tachyonicIndicatorLambdaAvg =
+                    q * avgPhi2 - muG2 - static_cast<T>(3) * lambdaG * avgChi2;
             const T gChi = model.dt * std::sqrt(std::max(tachyonicIndicator, static_cast<T>(0)));
             const T gChiAvg = model.dt * std::sqrt(std::max(tachyonicIndicatorAvg, static_cast<T>(0)));
+            const T gChiLambda = model.dt * std::sqrt(std::max(tachyonicIndicatorLambda, static_cast<T>(0)));
+            const T gChiLambdaAvg = model.dt * std::sqrt(std::max(tachyonicIndicatorLambdaAvg, static_cast<T>(0)));
             const T kPhiInt = model.dt * model.dt * q * maxChi2;
             const T kPhiIntAvg = model.dt * model.dt * q * avgChi2;
 
@@ -122,11 +133,16 @@ namespace TempLat {
                    << gChiAvg << " "
                    << kPhiIntAvg << " "
                    << tachyonicIndicator << " "
+                   << tachyonicIndicatorLambda << " "
+                   << tachyonicIndicatorLambdaAvg << " "
+                   << gChiLambda << " "
+                   << gChiLambdaAvg << " "
                    << energyConservation << " "
                    << rhoTot << "\n";
             output.flush();
 
-            if (!areEstimatorValuesFinite(maxPhi2, maxChi2, gChi, kPhiInt, rhoTot)) {
+            if (!areEstimatorValuesFinite(maxPhi2, maxChi2, gChi, kPhiInt,
+                                          tachyonicIndicatorLambda, gChiLambda, rhoTot)) {
                 stopRequested = true;
                 return;
             }
@@ -235,12 +251,15 @@ namespace TempLat {
             return std::abs(1.0 - rhoTot / rhoTot0);
         }
 
-        bool areEstimatorValuesFinite(T maxPhi2, T maxChi2, T gChi, T kPhiInt, T rhoTot) const
+        bool areEstimatorValuesFinite(T maxPhi2, T maxChi2, T gChi, T kPhiInt,
+                                      T tachyonicIndicatorLambda, T gChiLambda, T rhoTot) const
         {
             return finiteIEEE(maxPhi2)
                    && finiteIEEE(maxChi2)
                    && finiteIEEE(gChi)
                    && finiteIEEE(kPhiInt)
+                   && finiteIEEE(tachyonicIndicatorLambda)
+                   && finiteIEEE(gChiLambda)
                    && finiteIEEE(rhoTot);
         }
 
