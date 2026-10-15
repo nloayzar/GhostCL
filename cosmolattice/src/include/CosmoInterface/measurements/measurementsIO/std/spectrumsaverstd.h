@@ -73,19 +73,19 @@ namespace TempLat {
             }
 
 
-            auto mNBins = nBins;
+            auto mNBins = arr[0]->size();
 
             if(nBins > -1){
                 for(size_t i = 0; i < arr.size(); ++i) {
                   //  arr[i]->rebin(nBins , std::floor(pow(3, 0.5) / 2.0 * nGrid));  // The second argument is the total length of the grid in k . The bin size in computed as this divided by nBins. This choice corresponds to bin of size kIR for the default choice.
                     arr[i]->rescaleBins(kIR);
                 }
-            } else mNBins = arr[0]->size();
+            }
 
             // Now we construct the file with the appropriate format.
 
             std::stringstream sstream;
-            for(int i = 0; i< mNBins; ++i)
+            for(size_t i = 0; i< mNBins; ++i)
             {
                 sstream.str("");
 

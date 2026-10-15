@@ -12,6 +12,7 @@
 #include "TempLat/lattice/algebra/helpers/getkir.h"
 #include "TempLat/lattice/field/field.h"
 #include "TempLat/lattice/algebra/algebra.h"
+#include "TempLat/lattice/measuringtools/radialprojector.h"
 #include "CosmoInterface/runparameters.h"
 
 
@@ -29,7 +30,7 @@ namespace TempLat {
       public:
         template<typename T>
         PowerSpectrumMeasurer(const RunParameters<T>& par) :
-        nbins(par.nBinsSpectra),
+        deltaKBin(par.deltaKBin),
         PSType(par.powerSpectrumType),
         PSVersion(par.powerSpectrumVersion)
         {}
@@ -47,20 +48,28 @@ namespace TempLat {
         template<typename T>
         auto powerSpectrum(Field<T> f, ptrdiff_t N, T kIR)  {
 
-            ptrdiff_t N3 = pow<3>(N);
+            ptrdiff_t nDimensions = f.getToolBox()->mNDimensions;
+            T nSites = std::pow(T(N), nDimensions);
             T dx = 2 * Constants::pi<T> / kIR / N;  // lattice spacing
 
-            T kMaxBins = std::floor(pow(3, 0.5) / 2.0 * N) + 1;
+            T maxRadius = std::sqrt(T(nDimensions)) / 2 * N;
+            T kMaxBins = std::floor(maxRadius) + 1;
+            ptrdiff_t nbins = std::floor(maxRadius / deltaKBin);
+            T angularNormalization = 2 / (std::pow(T(2), nDimensions)
+                * std::pow(Constants::pi<T>, T(nDimensions) / 2)
+                * std::tgamma(T(nDimensions) / 2));
+            T averageNormalization = angularNormalization * std::pow(kIR * dx, nDimensions) / nSites;
+            T sumNormalization = kIR * dx / std::pow(T(N), 2 * nDimensions - 1) / 2 / Constants::pi<T>;
 
             if (PSVersion != 3){
                 auto fk2 = projectRadiallyFourier(pow<2>(abs(f.inFourierSpace())), PSVersion == 1).measure(nbins, kMaxBins); //PSversion == true is a boolean. It tells the spectrum to use the centralValues, and not the bins, when rescaling.
 
                 if (PSType == 2){
-                  return Function(ntilde, pow<3>(kIR * ntilde * dx ) / N3 / 2.0 / pow<2>(Constants::pi<T>)) * fk2;
+                  return Function(ntilde, averageNormalization * std::pow(ntilde, nDimensions)) * fk2;
                 }
                 else if (PSType == 1){
                   fk2.sumInsteadOfAverage();
-                  return Function(ntilde, kIR * ntilde * dx  / pow<5>(N) / 2.0 / Constants::pi<T>) * fk2;
+                  return Function(ntilde, sumNormalization * ntilde) * fk2;
                 }
                 else{
                   throw(WrongPSType("You tried to call an undefined PSType " +std::to_string(PSType) + ", abort."));
@@ -71,13 +80,13 @@ namespace TempLat {
               WaveNumber ntilde(f.getToolBox()); //WaveNumber is the same as FourierSite, except it does not require to know the dimension at compile time.
               if (PSType == 2){
 
-                  auto fk2 = projectRadiallyFourier(pow<3>(ntilde.norm()) * pow<2>(abs(f.inFourierSpace())), false).measure(nbins, kMaxBins);
-                  return  (pow<3>(kIR *  dx ) / N3 / 2.0 / pow<2>(Constants::pi<T>)) * fk2;
+                  auto fk2 = projectRadiallyFourier(pow(ntilde.norm(), nDimensions) * pow<2>(abs(f.inFourierSpace())), false).measure(nbins, kMaxBins);
+                  return averageNormalization * fk2;
               }
               else if (PSType == 1){
                 auto fk2 = projectRadiallyFourier(ntilde.norm() * pow<2>(abs(f.inFourierSpace())), false).measure(nbins, kMaxBins);
                   fk2.sumInsteadOfAverage();
-                  return ( kIR  * dx  / pow<5>(N) / 2.0 / Constants::pi<T>) * fk2;
+                  return sumNormalization * fk2;
               }
               else{
                 throw(WrongPSType("You tried to call an undefined PSType " +std::to_string(PSType) + ", abort."));
@@ -96,7 +105,7 @@ namespace TempLat {
         }
 
       private:
-        ptrdiff_t nbins;
+        double deltaKBin;
         int PSType;
         int PSVersion;
      };

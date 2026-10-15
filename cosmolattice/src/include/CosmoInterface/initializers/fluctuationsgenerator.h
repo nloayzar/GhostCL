@@ -51,7 +51,7 @@ namespace TempLat {
 
             // Returns the rms of the (real and imaginary) parts of the fluctuations
             // (see Sec. 7.1. of arXiv:2006.15122 for a derivation)
-            return  Hcut  * (model.omegaStar / model.fStar * pow(lSide / pow<2>(f.getDx()), 1.5)) * pow(2 * omega, -0.5)/sqrt(2);
+            return  Hcut  * (model.omegaStar / model.fStar * (lSide / pow<2>(f.getDx()))) * pow(2 * omega, -0.5)/sqrt(2);
             //Here 1/sqrt{2omega_k} characterises rms of |phi_k|, but since |phi_k|^2 =
             // Re(phi_k)^2 + Im(phi_k)^2, hence there is extra 1/sqrt{2} as this 'return' is
             // in reality the rms of either Re(phi_k) or Im(phi_k).

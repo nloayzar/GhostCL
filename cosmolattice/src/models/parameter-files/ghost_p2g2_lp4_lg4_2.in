@@ -1,0 +1,44 @@
+#Output
+outputfile = ./
+
+#Evolution
+expansion = false
+evolver = LF
+
+#Lattice
+N = 1024
+dt = 0.005
+kIR = .1
+
+#Times
+tOutputFreq = 50
+tOutputInfreq = 100
+tMax = 1e6
+
+# Stability estimator
+stabilityEstimator = true
+stabilityEstimatorUseKCutOff = false
+stabilityEstimatorStopThreshold = 1.5
+baseSeed = 1234
+
+#Spectra options
+PS_type = 1
+PS_version = 1
+
+#GWs
+GWprojectorType = 1
+withGWs = false
+grav_ON = false
+
+#IC
+kCutOff = 100
+initial_amplitudes = 0.0 0.0 # homogeneous amplitudes in GeV
+initial_momenta = 0.0 0.0  # homogeneous amplitudes in GeV2
+
+#Model Parameters
+mass_phi = 1.0
+mass_g = 1.1
+lambda_phi = 0
+lambda_g = 0
+q = 0.1
+
