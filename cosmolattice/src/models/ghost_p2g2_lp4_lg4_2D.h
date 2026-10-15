@@ -1,5 +1,5 @@
-#ifndef GHOST_P2G2_LP4_LG4_H //Usual macro guard to prevent multiple inclusion
-#define GHOST_P2G2_LP4_LG4_H
+#ifndef GHOST_P2G2_LP4_LG4_2D_H //Usual macro guard to prevent multiple inclusion
+#define GHOST_P2G2_LP4_LG4_2D_H
 
 /* This file is part of CosmoLattice, available at www.cosmolattice.net .
    Copyright Daniel G. Figueroa, Adrien Florio, Francisco Torrenti and Wessel Valkenburg.
